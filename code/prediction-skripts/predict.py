@@ -50,7 +50,7 @@ def main():
     df = data.to_pandas()
     df = df.sort_values(by="n_words", ascending = False)
     data = datasets.Dataset.from_pandas(df, preserve_index=False)
-    batch_size = 100
+    batch_size = 128
     data = data.map(tokenization, batched=True, batch_size=batch_size)
     data = data.map(predict_batch, batched=True, batch_size=batch_size)
     data.save_to_disk(BASE_PATH/"data"/"processed"/target_class/f"{dataset_name}-iteration-{iteration}")
