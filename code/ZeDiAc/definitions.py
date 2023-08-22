@@ -152,6 +152,40 @@ TRAININGCONFIG = {
             report_to="tensorboard",
             save_strategy="epoch",
             logging_steps=500
+        ),
+        "deberta-v3-base": TrainingArguments(
+            output_dir="",
+            do_train=True,
+            do_eval=False,
+            do_predict=False,
+            gradient_accumulation_steps=4,
+            learning_rate=2e-5,
+            weight_decay=0.1,
+            warmup_steps=500,
+            save_total_limit=10,
+            optim="adamw_torch",
+            auto_find_batch_size=False,
+            label_names=["true", "false"],
+            report_to="tensorboard",
+            save_strategy="epoch",
+            logging_steps=500
+        ),
+        "deberta-v3-small": TrainingArguments(
+            output_dir="",
+            do_train=True,
+            do_eval=False,
+            do_predict=False,
+            gradient_accumulation_steps=4,
+            learning_rate=2e-5,
+            weight_decay=0.1,
+            warmup_steps=500,
+            save_total_limit=10,
+            optim="adamw_torch",
+            auto_find_batch_size=False,
+            label_names=["true", "false"],
+            report_to="tensorboard",
+            save_strategy="epoch",
+            logging_steps=500
         )
     },
     "fine-tuning": {
@@ -160,7 +194,7 @@ TRAININGCONFIG = {
             do_train=True,
             do_eval=False,
             do_predict=False,
-            gradient_accumulation_steps=2,
+            gradient_accumulation_steps=4,
             learning_rate=8e-6,
             weight_decay=0.1,
             warmup_ratio=0, # this is for an alredy pretrained model
@@ -168,10 +202,27 @@ TRAININGCONFIG = {
             optim="adamw_torch",
             auto_find_batch_size=True,
             label_names=["true", "false"],
-            #report_to="tensorboard",
+            report_to="tensorboard",
             save_strategy="epoch",
-            logging_steps=100,
-            num_train_epochs=20
-        )
+            logging_steps=50,
+            num_train_epochs=5
+        ),
+        "deberta-v3-base": TrainingArguments(
+            output_dir="",
+            do_train=True,
+            do_eval=False,
+            do_predict=False,
+            gradient_accumulation_steps=4,
+            learning_rate=2e-5,
+            weight_decay=0.1,
+            warmup_steps=500,
+            save_total_limit=10,
+            optim="adamw_torch",
+            auto_find_batch_size=False,
+            label_names=["true", "false"],
+            report_to="tensorboard",
+            save_strategy="epoch",
+            logging_steps=500
+        ),
     }
 }

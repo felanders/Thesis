@@ -21,7 +21,6 @@ class BASETrainerWrapper:
         self.target_class = target_class
         self.data_path = BASE_PATH/"data"/"processed"/self.target_class/dataset_name
         self.data = self.load_data(dataset_name)  
-        self.data = self.data.to_pandas()
         self.data = self.data.sort_values(by="n_words")
         self.data = datasets.Dataset.from_pandas(self.data, preserve_index=False)
         training_args.output_dir = str(BASE_PATH/"logs"/"train"/self.target_class)
@@ -38,8 +37,17 @@ class BASETrainerWrapper:
             truncation=True,
             padding=True,
             pad_to_multiple_of=32,
-            max_length=self.model.config.max_position_embeddings)
+            max_length=self.tokenizer.model_max_length)
         return result
+
+    def tokenize(self):
+        # Delete previous tokenizations
+        self.data = self.data.to_pandas()
+        for col_name in ['input_ids','token_type_ids','attention_mask']:
+            if col_name in self.data.columns:
+                self.data.drop(col_name, axis=1, inplace=True)
+        self.data = datasets.Dataset.from_pandas(self.data, preserve_index=False)
+        self.data = self.data.map(lambda x: self.tokenization(x), batched=True, batch_size=32)
 
     def predict_batch(self, batch):
         data_batch = datasets.Dataset.from_dict(batch)
@@ -47,9 +55,7 @@ class BASETrainerWrapper:
         return {f"logits_{self.prediction_name}": predictions.predictions}
 
     def predict(self):
-        print(f"Starting tokenization")
-        self.data = self.data.map(
-            self.tokenization, batched=True, batch_size=32)
+        self.tokenize()
         print(f"Starting prediction")
         self.data = self.data.map(self.predict_batch, batched=True)
         print(f"Saving predictions")
@@ -94,7 +100,7 @@ class ZSPredictor(BASETrainerWrapper):
             truncation='only_first',
             padding=True,
             pad_to_multiple_of=32,
-            max_length=self.model.config.max_position_embeddings)
+            max_length=self.tokenizer.model_max_length)
         return result
 
     def predict(self):
@@ -133,20 +139,21 @@ class DistillationTrainer(BASETrainerWrapper):
             dataset_name=dataset_name,
             target_class=target_class,
             TrainerClass=DistillTrainer,
-            training_args=TRAININGCONFIG["distill"]["deberta-v3-large"],
+            training_args=TRAININGCONFIG["distill"][model_name.split("/")[1]],
             prediction_name=prediction_name
         )
         self.downsampling_factor = downsampling_factor
 
     def downsample(self):
-        d_t = self.data.filter(lambda ex: ex["labels"][0] >= 0.05)
-        d_f = self.data.filter(lambda ex: ex["labels"][0] < 0.05)
+        d_t = self.data.filter(lambda ex: ex["labels"][0] >= 0.5)
+        d_f = self.data.filter(lambda ex: ex["labels"][0] < 0.5)
         n_t = d_t.shape[0]
         n_f = d_f.shape[0]
         factor = n_f/n_t
         if factor > self.downsampling_factor:
             self.data = datasets.concatenate_datasets([d_t, d_f.train_test_split(test_size=d_t.shape[0]*self.downsampling_factor)["test"]], axis = 0)
             self.data = self.data.shuffle(seed=19950808)
+        self.data = self.data.map(self.tokenization, batched=True, batch_size=128)
 
     def prepare_data(self):
         for column_name in self.data.column_names:
