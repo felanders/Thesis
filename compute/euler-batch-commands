@@ -1,0 +1,66 @@
+module load gcc/8.2.0
+module load python_gpu/3.11.2
+source thesis_env_gpu/bin/activate
+
+sbatch  --time=20:00:00 -n 2 --mem-per-cpu=8000 --gpus=rtx_2080_ti:1 -o unexpected_eval.out -J unex_eval --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/predict.py -t=unexpected -i=3 -d=evaluate"
+sbatch  --time=01:30:00 -n 2 --mem-per-cpu=4000 --gpus=rtx_2080_ti:1 -o unexpected_zs.out -J unex_zs --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/predict.py -t=unexpected -i=3 -d=zero-shot"
+sbatch  --time=01:30:00 -n 2 --mem-per-cpu=4000 --gpus=rtx_2080_ti:1 -o unexpected_al.out -J unex_al --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/predict.py -t=unexpected -i=3 -d=active-learning"
+
+sbatch  --time=20:00:00 -n 2 --mem-per-cpu=8000 --gpus=rtx_2080_ti:1 -o loss_eval.out -J loss_eval --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/predict.py -t=loss -i=3 -d=evaluate"
+sbatch  --time=01:30:00 -n 2 --mem-per-cpu=4000 --gpus=rtx_2080_ti:1 -o loss_zs.out -J loss_zs --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/predict.py -t=loss -i=3 -d=zero-shot"
+sbatch  --time=01:30:00 -n 2 --mem-per-cpu=4000 --gpus=rtx_2080_ti:1 -o loss_al.out -J loss_al --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/predict.py -t=loss -i=3 -d=active-learning"
+
+sbatch  --time=02:00:00 -n 2 --mem-per-cpu=4000 --gpus=1 --gres=gpumem:20g -o train_loss.out -J train_loss --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/train.py -t=loss -i=0"
+sbatch  --time=02:00:00 -n 2 --mem-per-cpu=4000 --gpus=1 --gres=gpumem:20g -o train_unex.out -J train_unex --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/train.py -t=unexpected -i=0"
+
+sbatch  --time=01:30:00 -n 2 --mem-per-cpu=8000 --gpus=rtx_2080_ti:1 -o loss_chunks.out -J loss_chunks --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/predict.py -t=loss -i=3 -d=chunks"
+sbatch  --time=01:30:00 -n 2 --mem-per-cpu=8000 --gpus=rtx_2080_ti:1 -o unex_chunks.out -J unex_chunks --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/predict.py -t=unexpected -i=3 -d=chunks"
+
+sbatch  --time=01:30:00 -n 2 --mem-per-cpu=8000 --gpus=rtx_2080_ti:1 -o loss_eval.out -J loss_eval --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/predict.py -t=loss -i=0 -d=eval"
+sbatch  --time=01:30:00 -n 2 --mem-per-cpu=8000 --gpus=rtx_2080_ti:1 -o unex_eval.out -J unex_eval --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/predict.py -t=unexpected -i=0 -d=eval"
+
+sbatch  --time=02:00:00 -n 2 --mem-per-cpu=4000 --gpus=1 --gres=gpumem:20g -o train_loss.out -J train_loss --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/train.py -t=loss -i=2 --task=ft --model_name=microsoft/deberta-v3-large"
+sbatch  --time=02:00:00 -n 2 --mem-per-cpu=4000 --gpus=1 --gres=gpumem:20g -o train_unex.out -J train_unex --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/train.py -t=unexpected -i=2 --task=ft --model_name=microsoft/deberta-v3-large"
+sbatch  --time=02:00:00 -n 2 --mem-per-cpu=4000 --gpus=1 --gres=gpumem:20g -o train_loss_b.out -J train_b_loss --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/train.py -t=loss -i=2 --task=ft --model_name=microsoft/deberta-v3-base"
+sbatch  --time=02:00:00 -n 2 --mem-per-cpu=4000 --gpus=1 --gres=gpumem:20g -o train_unex_b.out -J train_b_unex --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/train.py -t=unexpected -i=2 --task=ft --model_name=microsoft/deberta-v3-base"
+
+sbatch  --time=34:00:00 -n 1 -o llms.out -J llms --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/run-llms.py"
+
+python /cluster/home/afelderer/Thesis/code/prediction-skripts/zero-shot.py -t=unexpected -d=eval -m=RoBERTa --ensemble_temperature=1
+python /cluster/home/afelderer/Thesis/code/prediction-skripts/zero-shot.py -t=loss -d=eval -m=RoBERTa --ensemble_temperature=1
+python /cluster/home/afelderer/Thesis/code/prediction-skripts/zero-shot.py -t=unexpected -d=eval -m=DeBERTa --ensemble_temperature=1
+python /cluster/home/afelderer/Thesis/code/prediction-skripts/zero-shot.py -t=loss -d=eval -m=DeBERTa --ensemble_temperature=1
+
+sbatch  --time=01:30:00 -n 2 --mem-per-cpu=8000 --gpus=rtx_2080_ti:1 -o ul_zs_eval.out -J ul_zs_eval --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/zero-shot.py -t=unexpected_loss -d=eval -m=DeBERTa --ensemble_temperature=1"
+sbatch  --time=01:30:00 -n 2 --mem-per-cpu=8000 --gpus=rtx_2080_ti:1 -o ul_zs_eval.out -J ul_zs_eval --wrap="python /cluster/home/afelderer/Thesis/code/prediction-skripts/zero-shot.py -t=unexpected_loss -d=eval -m=RoBERTa --ensemble_temperature=1"
+
+python /cluster/home/afelderer/Thesis/code/prediction-skripts/zero-shot.py -t=unexpected_loss -d=eval -m=DeBERTa --ensemble_temperature=1
+python /cluster/home/afelderer/Thesis/code/prediction-skripts/zero-shot.py -t=unexpected_loss -d=eval -m=RoBERTa --ensemble_temperature=1
+python /cluster/home/afelderer/Thesis/code/prediction-skripts/predict.py -t=unexpected -i=0 -d=eval
+python /cluster/home/afelderer/Thesis/code/prediction-skripts/predict.py -t=loss -i=0 -d=eval
+python /cluster/home/afelderer/Thesis/code/prediction-skripts/predict.py -t=unexpected -i=3 -d=eval
+python /cluster/home/afelderer/Thesis/code/prediction-skripts/predict.py -t=loss -i=3 -d=eval
+
+
+sbatch  --time=20:00:00 -n 2 --mem-per-cpu=4000 --gpus=rtx_3090:1 --wrap="python /cluster/home/afelderer/Thesis/run-zs.py -m=RoBERTa -t=loss"
+
+## Copy To be run in ./Thesis/data/evaluation
+scp -r afelderer@euler.ethz.ch:/cluster/scratch/afelderer/Thesis/data/processed/loss/eval-zediac-base-iteration-3 ./loss/eval-zediac-base
+scp -r afelderer@euler.ethz.ch:/cluster/scratch/afelderer/Thesis/data/processed/loss/eval-zediac-large-iteration-3 ./loss/eval-zediac-large
+scp -r afelderer@euler.ethz.ch:/cluster/scratch/afelderer/Thesis/data/processed/loss/eval-zedi-base ./loss/eval-zedi-base
+scp -r afelderer@euler.ethz.ch:/cluster/scratch/afelderer/Thesis/data/processed/loss/eval-zedi-large ./loss/eval-zedi-large
+scp -r afelderer@euler.ethz.ch:/cluster/scratch/afelderer/Thesis/data/processed/loss/eval-ft-base ./loss/eval-ft-base
+scp -r afelderer@euler.ethz.ch:/cluster/scratch/afelderer/Thesis/data/processed/loss/eval-ft-large ./loss/eval-ft-large
+scp -r afelderer@euler.ethz.ch:/cluster/scratch/afelderer/Thesis/data/processed/loss/eval-ze-base ./loss/eval-ze-base
+scp -r afelderer@euler.ethz.ch:/cluster/scratch/afelderer/Thesis/data/processed/loss/eval-ze-large ./loss/eval-ze-large
+
+scp -r afelderer@euler.ethz.ch:/cluster/scratch/afelderer/Thesis/data/processed/unexpected_loss/eval ./unexpected_loss/eval
+
+scp -r afelderer@euler.ethz.ch:/cluster/scratch/afelderer/Thesis/data/processed/unexpected/eval-zediac-base-iteration-3 ./unexpected/eval-zediac-base
+scp -r afelderer@euler.ethz.ch:/cluster/scratch/afelderer/Thesis/data/processed/unexpected/eval-zediac-large-iteration-3 ./unexpected/eval-zediac-large
+scp -r afelderer@euler.ethz.ch:/cluster/scratch/afelderer/Thesis/data/processed/unexpected/eval-zedi-base ./unexpected/eval-zedi-base
+scp -r afelderer@euler.ethz.ch:/cluster/scratch/afelderer/Thesis/data/processed/unexpected/eval-zedi-large ./unexpected/eval-zedi-large
+scp -r afelderer@euler.ethz.ch:/cluster/scratch/afelderer/Thesis/data/processed/unexpected/eval-ft-base ./unexpected/eval-ft-base
+scp -r afelderer@euler.ethz.ch:/cluster/scratch/afelderer/Thesis/data/processed/unexpected/eval-ft-large ./unexpected/eval-ft-large
+scp -r afelderer@euler.ethz.ch:/cluster/scratch/afelderer/Thesis/data/processed/unexpected/eval-ze-base ./unexpected/eval-ze-base
+scp -r afelderer@euler.ethz.ch:/cluster/scratch/afelderer/Thesis/data/processed/unexpected/eval-ze-large ./unexpected/eval-ze-large

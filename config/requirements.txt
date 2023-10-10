@@ -20,3 +20,8 @@ transformers
 datasets
 scikit-activeml
 sentencepiece
+price-parser
+bertopic
+cohere
+openai
+octis

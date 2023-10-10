@@ -9,14 +9,14 @@ import pandas as pd
 
 from dotenv import dotenv_values
 
-base_path = Path("/cluster/home/afelderer/Thesis")
-config = dotenv_values("/cluster/home/afelderer/Thesis/config/.env") # take environment variables from .env.
+base_path = Path("/home/andreas/Polybox/Project-Support-Material/Thesis")
+config = dotenv_values("/home/andreas/Polybox/Project-Support-Material/Thesis/config/.env") # take environment variables from .env.
 
 openai.organization = config["OPEN_AI_ORG"]
 openai.api_key = config["OPEN_AI_TOKEN"]
 co = cohere.Client(config["COHERE_API_KEY"])
 
-providers = ["cohere", "openai"]
+providers = ["cohere"]#, "openai"]
 
 labels = {
     "loss": "a financial/business loss, or adverse business development experienced by the reporting entity",
@@ -44,7 +44,7 @@ def completions_with_backoff(**kwargs):
     return openai.ChatCompletion.create(**kwargs)
 
 def main():
-    logging.basicConfig(filename='llms.log', level=logging.INFO)
+    logging.basicConfig(filename='llms.log', level=logging.INFO, format='%(asctime)s %(message)s', datefmt='%m-%d %H:%M:%S')
     for i, x in annotations[~annotations.labeled].iterrows():
         for l in labels.keys():
             for provider in providers:
@@ -67,10 +67,13 @@ def main():
                         max_tokens=10,
                         stop_sequences=["\n"])
                     annotations.loc[i, f"{provider}_{l}"] = response.generations[0].text.strip()
-            time.sleep(21)
+            if providers == ["cohere"]:
+                time.sleep(12)
+            else:
+                time.sleep(21)
         annotations.loc[i, "labeled"] = True
         annotations.to_pickle(base_path/"data/labeling/Eval-LLMs.pkl")
-        logging.info(f"Finished labeling {i}.")
+        logging.info(f"labeled {i}")
 
 if __name__ == "__main__":
     main()
