@@ -20,7 +20,8 @@ class BASETrainerWrapper:
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.target_class = target_class
         self.data_path = BASE_PATH/"data"/"processed"/self.target_class/dataset_name
-        self.data = self.load_data(dataset_name)  
+        self.data = self.load_data(dataset_name) 
+        self.data = self.data.to_pandas() 
         self.data = self.data.sort_values(by="n_words")
         self.data = datasets.Dataset.from_pandas(self.data, preserve_index=False)
         training_args.output_dir = str(BASE_PATH/"logs"/"train"/self.target_class)
@@ -65,7 +66,7 @@ class BASETrainerWrapper:
         if self.data_path.exists() and self.data_path.is_dir() and (self.data_path/"dataset_info.json").exists():
             in_data_path = self.data_path
         else:
-            in_data_path = BASE_PATH/"data"/"preprocessed"/"dataset"/dataset_name
+            in_data_path = f'/cluster/home/afelderer/Thesis/data/preprocessed/dataset/{dataset_name}'
         return datasets.Dataset.load_from_disk(in_data_path)
     
     def save_data(self):
@@ -153,7 +154,7 @@ class DistillationTrainer(BASETrainerWrapper):
         if factor > self.downsampling_factor:
             self.data = datasets.concatenate_datasets([d_t, d_f.train_test_split(test_size=d_t.shape[0]*self.downsampling_factor)["test"]], axis = 0)
             self.data = self.data.shuffle(seed=19950808)
-        self.data = self.data.map(self.tokenization, batched=True, batch_size=128)
+        self.tokenize()
 
     def prepare_data(self):
         for column_name in self.data.column_names:
