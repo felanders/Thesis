@@ -21,6 +21,7 @@ class BASETrainerWrapper:
         self.target_class = target_class
         self.data_path = BASE_PATH/"data"/"processed"/self.target_class/dataset_name
         self.data = self.load_data(dataset_name)  
+        self.data = self.data.to_pandas()
         self.data = self.data.sort_values(by="n_words")
         self.data = datasets.Dataset.from_pandas(self.data, preserve_index=False)
         training_args.output_dir = str(BASE_PATH/"logs"/"train"/self.target_class)
