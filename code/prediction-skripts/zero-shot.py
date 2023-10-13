@@ -1,30 +1,33 @@
 import sys
 
-sys.path.append("/cluster/scratch/afelderer/code")
+sys.path.append("/cluster/home/afelderer/Thesis/code")
 
 import argparse
 
-from ZeDiAc.definitions import LABELCONFIG
+from ZeDiAc.definitions import LABELCONFIG, MODELCONFIG
 from ZeDiAc.Predictors import ZSPredictor
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--target_class", "-t", choices=["loss", "unexpected"], type=str, default="loss")
-    parser.add_argument("--iteration", "-i", type=int, default=3)
+    parser.add_argument("--target_class", "-t", choices=["loss", "unexpected", "unexpected_loss"], type=str, default="loss")
     parser.add_argument("--dataset_name", "-d", type=str, default="evaluate")
+    parser.add_argument("--model_name", "-m", type=str, default="DeBERTa")
+    parser.add_argument("--ensemble_temperature", type=int, default=2)
     args = parser.parse_args()
 
     templates = LABELCONFIG["templates"]
-    labels = LABELCONFIG["labels"][args.target_label]
-    hypotheses = {t.format(l): f"D_{templates[t]}_{labels[l]}" for t in templates for l in labels}
+    labels = LABELCONFIG["labels"][args.target_class]
+    model_name=MODELCONFIG[args.model_name]["name"]
+    model_abbrev=MODELCONFIG[args.model_name]["abbrev"]
+    hypotheses = {t.format(l): f"{model_abbrev}_{templates[t]}_{labels[l]}" for t in templates for l in labels}
 
     zs = ZSPredictor(
-        model_name="MoritzLaurer/DeBERTa-v3-large-mnli-fever-anli-ling-wanli",
-        dataset_name="active-learning",
+        model_name=model_name,
+        dataset_name=args.dataset_name,
         hypotheses=hypotheses,
-        target_class="unexpected",
-        ensemble_temperature=2)
+        target_class=args.target_class,
+        ensemble_temperature=args.ensemble_temperature)
 
     zs.predict()
 

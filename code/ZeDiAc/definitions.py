@@ -120,6 +120,14 @@ LABELCONFIG = {
             "an unexpected or surprising development": "U3",
             "an unexpected event": "U4",
             "a surprising consequence": "U5"
+        },
+        "unexpected_loss": {
+            "an unexpected loss": "UL1",
+            "a surprising loss": "UL2",
+            "an unexpected or surprising loss": "UL3",
+            "an unexpected adverse development": "UL4",
+            "a surprising adverse development": "UL5",
+            "an unexpected or surprising adverse development": "UL6"
         }
     }
 }

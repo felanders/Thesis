@@ -49,7 +49,7 @@ class Annotator:
         return current_df
 
     def display_fn(self, text):
-        TEMPLATE = """<div style="background-color: rgb(244, 236, 216)"><div style="max-width:600px; word-wrap:break-word; font-size: 22px; line-height: 1.4; font-family: Palatino; padding: 50px">{text}</div></div>"""
+        TEMPLATE = """<div style="max-width:700px; word-wrap:break-word; font-size: 20px; line-height: 1.4; font-family: Helvetica; padding: 25px">{text}</div>"""
         return display(HTML(TEMPLATE.format(**{"text": text.value})))
 
     def update_row(self, example, selected_labels):
@@ -135,22 +135,3 @@ class ActiveAnnotator(Annotator):
                 current_df = unlabeled.iloc[self.current_indices]
             current_df.loc[current_df.index,"strategy"] = f"{strategy}_{self.target_label}"
             return current_df
-
-class ReportAnnotator(Annotator):
-    def __init__(self, data, labels, out_file, text_column="text", batch_size=10):
-        super().__init__(data=data, labels=labels, out_file=out_file,
-                         text_column=text_column, batch_size=batch_size)
-        self.data.to_pickle(self.out_path)
-
-    def get_unlabeled(self):
-        return self.data[self.data.labeled == -1]
-
-    def sample(self, strategy="sequential"):
-        if strategy == "random":
-            return super().sample()
-        current_df = self.get_unlabeled()
-        self.current_indices = current_df.iloc[:self.batch_size].index
-        current_df = current_df.loc[self.current_indices]
-        current_df.loc[self.current_indices,"strategy"] = f"{strategy}"
-        print("Companies: ", current_df.company.unique(), "Years: ", current_df.year.unique(), "Paragraphs:", current_df.paragraph_nr.unique()[0], "to", current_df.paragraph_nr.unique()[-1])
-        return current_df
