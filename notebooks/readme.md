@@ -1,0 +1,4 @@
+ - `/Data-Collection`: Notebooks for creation and description of the underlying dataset from both 10Ks and PDF-files
+ - `/Evaluation`: Notebooks used to construct keyword and tf-idf based baselines and to create the overview evaluation statistics and tables reported in the manuscript
+ - `/Labeling`: Notebooks used for the Labeling during active learning and for constructing and labeling the evaluation data set.
+ - `/Processing`: Notebooks for intermediary computations, topic modeling and text embedding, some data management and explorations of results 

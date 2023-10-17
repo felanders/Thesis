@@ -1,0 +1,4 @@
+- `/fin_disclosures_nlp` contains the relevant code (extracted and adapted from https://github.com/dafrie/fin-disclosures-nlp) for the extraction of text from pdfs 
+- `/prediction-skripts` contains python skripts used to run zero-shot (NLI) labeling, training of DeBERTa models and prediction with trained DeBERTa models, it also contains the skript used to query Cohere and Open AI APIs
+- `/utils` contains the commands used to start jobs on EULER
+- `/ZeDiAc` contains the code used (called in prediction skirpts and notebooks) for prediction, training, and annotation as well as the definition of parameters.
